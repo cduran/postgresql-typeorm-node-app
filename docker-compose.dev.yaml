@@ -1,0 +1,70 @@
+services:
+  mypgdb:
+    image: postgres
+    environment:
+      POSTGRES_USER: mypguser
+      POSTGRES_DB: nodejs_demo_db
+      POSTGRES_PASSWORD: mysupersecret
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mypguser -d nodejs_demo_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./pgDb-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  workingnode:
+    build:
+      context: ./typeorm-node-app
+    ports:
+      - "3000:3000"
+    links:
+      - mypgdb
+    depends_on:
+      mypgdb:
+        condition: service_healthy
+
+  pgadmin4:
+    image: dpage/pgadmin4:latest
+    restart: always
+    ports:
+      - "8080:80"
+    environment: 
+      - PGADMIN_DEFAULT_EMAIL=user@domain.com
+      - PGADMIN_DEFAULT_PASSWORD=SuperSecret
+      - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=True
+      - PGADMIN_CONFIG_LOGIN_BANNER="Authorised users only!"
+      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
+    links: 
+      - mypgdb
+    depends_on:
+      mypgdb:
+        condition: service_healthy
+    volumes:
+      - ./pgAdmin-data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json
+
+  # config-db:
+  #   build: .
+  #   container_name: config-postgres
+  #   restart: unless-stopped
+  #   # command: -c 'config_file=/etc/postgresql/postgresql.conf'
+  #   ports:
+  #     - "5433:5432"
+  #   # env_file: .env
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_DB=nodejs_demo
+  #     - POSTGRES_PASSWORD=password
+
+  # nodeapp:
+  #   build:
+  #     context: ./nodejs-pgsql-master
+  #   ports:
+  #     - "4000:4000"
+  #   links:
+  #     - mypgdb

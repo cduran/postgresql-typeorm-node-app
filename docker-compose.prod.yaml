@@ -1,0 +1,48 @@
+services:
+  mypgdb:
+    build:
+      context: ./pgdb
+      dockerfile: Dockerfile.prod
+    environment:
+      POSTGRES_USER: mypguser
+      POSTGRES_DB: nodejs_demo_db
+      POSTGRES_PASSWORD: mysupersecret
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mypguser -d nodejs_demo_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  workingnode:
+    build:
+      context: ./typeorm-node-app
+      dockerfile: Dockerfile.prod
+    ports:
+      - "3000:3000"
+    links:
+      - mypgdb
+    depends_on:
+      mypgdb:
+        condition: service_healthy
+
+  pgadmin4:
+    build:
+      context: ./pgadmin4
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - "8080:80"
+    environment: 
+      - PGADMIN_DEFAULT_EMAIL=user@domain.com
+      - PGADMIN_DEFAULT_PASSWORD=SuperSecret
+      - PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION=True
+      - PGADMIN_CONFIG_LOGIN_BANNER="Authorised users only!"
+      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
+    links: 
+      - mypgdb
+    depends_on:
+      mypgdb:
+        condition: service_healthy

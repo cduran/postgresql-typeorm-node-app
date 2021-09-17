@@ -1,0 +1,11 @@
+ {
+    "type": "postgres",
+    "host": "mypgdb",
+    "port": 5432,
+    "username": "mypguser",
+    "password": "mysupersecret",
+    "database": "nodejs_demo_db",
+    "entities": ["src/entity/*.js"],
+    "logging": true,
+    "synchronize": true
+  }

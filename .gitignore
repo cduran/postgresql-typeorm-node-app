@@ -1,0 +1,9 @@
+# dev folders
+pgAdmin-data
+pgDb-data
+node_modules
+
+.vscode
+
+.env
+.DS_Store
