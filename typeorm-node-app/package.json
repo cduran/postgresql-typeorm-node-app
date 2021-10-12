@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/app.js",
     "build": "tsc",
+    "migration": "typeorm migration:create -n PostRefactor",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

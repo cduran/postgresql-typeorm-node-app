@@ -12,7 +12,6 @@ createConnection().then(connection => {
     app.use(express.json());
 
     // register routes
-
     app.get("/users", async function(req: Request, res: Response) {
         const users = await userRepository.find();
         res.json(users);
